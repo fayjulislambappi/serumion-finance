@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { MongoMemoryServer } = require('mongodb-memory-server');
 const dns = require('dns');
 
 // Override default DNS servers on Windows to handle MongoDB Atlas DNS SRV lookups (_mongodb._tcp)
@@ -18,17 +17,18 @@ const connectDB = async () => {
     try {
       console.log(`⚡ Connecting to configured MongoDB Atlas / Instance...`);
       const conn = await mongoose.connect(mongoUri, {
-        serverSelectionTimeoutMS: 5000,
+        serverSelectionTimeoutMS: 10000,
       });
       console.log(`🚀 MongoDB Atlas Connected Successfully: ${conn.connection.host} / Database: ${conn.connection.name}`);
       return conn;
     } catch (error) {
       console.error(`⚠️ Could not connect to MONGODB_URI (${error.message}).`);
-      console.log('⚡ Launching embedded MongoMemoryServer for development fallback...');
     }
   }
 
+  // Fallback to embedded MongoMemoryServer for offline development if available
   try {
+    const { MongoMemoryServer } = require('mongodb-memory-server');
     mongoServer = await MongoMemoryServer.create();
     mongoUri = mongoServer.getUri();
     console.log(`✅ Embedded MongoMemoryServer active at: ${mongoUri}`);
@@ -37,7 +37,7 @@ const connectDB = async () => {
     console.log(`🚀 MongoDB Connected (Embedded): ${conn.connection.host} / Database: ${conn.connection.name}`);
     return conn;
   } catch (error) {
-    console.error(`❌ Embedded MongoDB Startup Error: ${error.message}`);
+    console.error(`❌ MongoDB Connection Error: ${error.message}`);
     process.exit(1);
   }
 };
