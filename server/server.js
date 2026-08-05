@@ -3,6 +3,7 @@ const cors = require('cors');
 const morgan = require('morgan');
 const dotenv = require('dotenv');
 const path = require('path');
+const fs = require('fs');
 const connectDB = require('./config/db');
 const seedDB = require('./utils/seed');
 const User = require('./models/User');
@@ -48,13 +49,29 @@ app.get('/api/health', (req, res) => {
 });
 
 // Serve static React production build when deployed
-if (process.env.NODE_ENV === 'production' || process.env.RENDER) {
-  const clientBuildPath = path.join(__dirname, '../client/dist');
+const possibleClientPaths = [
+  path.join(__dirname, '../client/dist'),
+  path.join(__dirname, '../../client/dist'),
+  path.join(process.cwd(), 'client/dist'),
+  path.join(process.cwd(), '../client/dist'),
+];
+
+const clientBuildPath = possibleClientPaths.find((p) => fs.existsSync(path.join(p, 'index.html')));
+
+if (clientBuildPath) {
+  console.log(`🌐 Serving static client files from: ${clientBuildPath}`);
   app.use(express.static(clientBuildPath));
 
   app.get('*', (req, res) => {
-    res.sendFile(path.resolve(clientBuildPath, 'index.html'));
+    const indexPath = path.join(clientBuildPath, 'index.html');
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      res.status(404).send('Client build index.html not found');
+    }
   });
+} else {
+  console.warn('⚠️ Client production build directory (client/dist) not found.');
 }
 
 // Global Error Handler
