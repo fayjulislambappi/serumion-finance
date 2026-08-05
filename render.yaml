@@ -3,7 +3,7 @@ services:
     name: serumion-finance
     env: node
     buildCommand: npm run build
-    startCommand: npm start
+    startCommand: cd server && node server.js
     envVars:
       - key: NODE_ENV
         value: production
