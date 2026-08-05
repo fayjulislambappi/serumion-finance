@@ -48,31 +48,43 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Serve static React production build when deployed
-const possibleClientPaths = [
-  path.join(__dirname, '../client/dist'),
-  path.join(__dirname, '../../client/dist'),
-  path.join(process.cwd(), 'client/dist'),
-  path.join(process.cwd(), '../client/dist'),
-];
+// Serve static React production build
+const clientBuildPath = path.resolve(__dirname, '../client/dist');
+console.log(`🌐 Static client build path: ${clientBuildPath} (Exists: ${fs.existsSync(clientBuildPath)})`);
 
-const clientBuildPath = possibleClientPaths.find((p) => fs.existsSync(path.join(p, 'index.html')));
+app.use(express.static(clientBuildPath));
 
-if (clientBuildPath) {
-  console.log(`🌐 Serving static client files from: ${clientBuildPath}`);
-  app.use(express.static(clientBuildPath));
-
-  app.get('*', (req, res) => {
-    const indexPath = path.join(clientBuildPath, 'index.html');
-    if (fs.existsSync(indexPath)) {
-      res.sendFile(indexPath);
-    } else {
-      res.status(404).send('Client build index.html not found');
-    }
-  });
-} else {
-  console.warn('⚠️ Client production build directory (client/dist) not found.');
-}
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) {
+    return next();
+  }
+  const indexPath = path.join(clientBuildPath, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(200).send(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Serumion Finance - Server Active</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+            body { font-family: system-ui, -apple-system, sans-serif; background: #090d16; color: #f8fafc; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+            .card { background: #0f172a; border: 1px solid #1e293b; padding: 2rem; border-radius: 1rem; text-align: center; max-width: 400px; }
+            h1 { color: #0ea5e9; font-size: 1.5rem; margin-bottom: 0.5rem; }
+            p { color: #94a3b8; font-size: 0.875rem; }
+          </style>
+        </head>
+        <body>
+          <div class="card">
+            <h1>Serumion Finance API</h1>
+            <p>Backend API Server is live on Render. Client build compiling...</p>
+          </div>
+        </body>
+      </html>
+    `);
+  }
+});
 
 // Global Error Handler
 app.use((err, req, res, next) => {
