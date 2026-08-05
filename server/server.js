@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const dotenv = require('dotenv');
+const path = require('path');
 const connectDB = require('./config/db');
 const seedDB = require('./utils/seed');
 const User = require('./models/User');
@@ -45,6 +46,16 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date(),
   });
 });
+
+// Serve static React production build when deployed
+if (process.env.NODE_ENV === 'production' || process.env.RENDER) {
+  const clientBuildPath = path.join(__dirname, '../client/dist');
+  app.use(express.static(clientBuildPath));
+
+  app.get('*', (req, res) => {
+    res.sendFile(path.resolve(clientBuildPath, 'index.html'));
+  });
+}
 
 // Global Error Handler
 app.use((err, req, res, next) => {
