@@ -1,0 +1,28 @@
+{
+  "name": "serumion-finance",
+  "version": "1.0.0",
+  "description": "Serumion Financial and Accounting Management Web Application (MERN Stack)",
+  "main": "server/server.js",
+  "scripts": {
+    "install:all": "npm install && cd server && npm install && cd ../client && npm install",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm run dev",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "build": "cd client && npm run build",
+    "seed": "cd server && npm run seed"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": [
+    "mern",
+    "accounting",
+    "finance",
+    "serumion",
+    "react",
+    "express",
+    "mongodb"
+  ],
+  "author": "Serumion Dev Team",
+  "license": "MIT"
+}
