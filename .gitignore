@@ -8,7 +8,6 @@ server/node_modules
 server/.env
 
 # Build outputs
-client/dist
 client/build
 
 # Logs
